@@ -1,0 +1,50 @@
+version: '3'
+services:
+  nginx:
+      image: nginx:latest
+      ports:
+          - '80:80'
+      volumes:
+          - ./nginx:/etc/nginx/conf.d
+          - ./logs/nginx:/var/log/nginx
+          - wordpress:/var/www/html
+      links:
+          - wordpress
+      restart: always
+
+  mariadb:
+    image: mariadb:latest
+    ports:
+        - '3306:3306'
+    volumes:
+        - db-data:/var/lib/mariadb
+    environment:
+        - MARIADB_DATABASE=wpdb
+        - MARIADB_USER=wpuser
+        - MARIADB_PASSWORD=pass
+        - MARIADB_ROOT_PASSWORD=pass
+    restart: always
+
+  wordpress:
+    image: wordpress:6.1.1-php8.2-fpm
+    ports:
+        - '9000:9000'
+    volumes:
+        - wordpress:/var/www/html
+        - ./themes:/var/www/html/wp-content/themes
+        - ./plugins:/var/www/html/wp-content/plugins
+    environment:
+        - WORDPRESS_DB_HOST=mariadb
+        - WORDPRESS_DB_NAME=wpdb
+        - WORDPRESS_DB_USER=wpuser
+        - WORDPRESS_DB_PASSWORD=pass
+        - WORDPRESS_TABLE_PREFIX=wp_
+        
+
+    links:
+        - mariadb
+    restart: always
+
+volumes:
+  db-data:
+  wordpress:
